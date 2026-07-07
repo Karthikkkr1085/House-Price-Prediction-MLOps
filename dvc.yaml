@@ -1,0 +1,15 @@
+stages:
+  data_validation:
+    cmd: python src\data_validation.py
+    deps:
+    - data\raw\zameen-updated.csv
+    - src\data_validation.py
+    outs:
+    - reports\validation_report.json
+  data_preprocessing:
+    cmd: python src\data_preprocessing.py
+    deps:
+    - data\raw\zameen-updated.csv
+    - src\data_preprocessing.py
+    outs:
+    - data\processed\processed_data.csv

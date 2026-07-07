@@ -1,3 +1,5 @@
+import os
+import json
 import pandas as pd
 
 # Load dataset
@@ -7,26 +9,46 @@ print("=" * 50)
 print("DATA VALIDATION REPORT")
 print("=" * 50)
 
-# Shape
-print(f"\nRows: {df.shape[0]}")
-print(f"Columns: {df.shape[1]}")
+rows, columns = df.shape
 
-# Data Types
+print(f"\nRows: {rows}")
+print(f"Columns: {columns}")
+
 print("\nData Types:")
 print(df.dtypes)
 
-# Missing Values
+missing_values = df.isnull().sum()
+
 print("\nMissing Values:")
-print(df.isnull().sum())
+print(missing_values)
 
-# Duplicate Rows
+duplicate_rows = int(df.duplicated().sum())
+
 print("\nDuplicate Rows:")
-print(df.duplicated().sum())
+print(duplicate_rows)
 
-# Check Target Column
 print("\nTarget Column (price):")
 print(df["price"].describe())
 
-# Check Negative Prices
-negative_prices = (df["price"] < 0).sum()
+negative_prices = int((df["price"] < 0).sum())
+
 print(f"\nNegative Prices: {negative_prices}")
+
+# Create reports folder
+os.makedirs("reports", exist_ok=True)
+
+# Save validation report
+report = {
+    "rows": rows,
+    "columns": columns,
+    "missing_values": {k: int(v) for k, v in missing_values.items()},
+    "duplicate_rows": duplicate_rows,
+    "negative_prices": negative_prices,
+    "data_types": {k: str(v) for k, v in df.dtypes.items()}
+}
+
+with open("reports/validation_report.json", "w") as f:
+    json.dump(report, f, indent=4)
+
+print("\nValidation report saved successfully!")
+print("Location: reports/validation_report.json")
