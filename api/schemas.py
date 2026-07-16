@@ -2,15 +2,15 @@ from pydantic import BaseModel
 
 
 class HouseData(BaseModel):
-    property_type: int
-    location: int
-    city: int
-    province_name: int
+    property_type: str
+    location: str
+    city: str
+    province_name: str
     latitude: float
     longitude: float
     baths: int
-    purpose: int
+    purpose: str
     bedrooms: int
-    Area_Type: int
+    Area_Type: str
     Area_Size: float
-    Area_Category: int
+    Area_Category: str

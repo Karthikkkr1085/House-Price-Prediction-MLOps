@@ -6,7 +6,7 @@ seaborn==0.13.2
 joblib==1.5.1
 
 fastapi==0.116.1
-uvicorn==0.35.0
+uvicorn==0.34.0
 
 mlflow==3.1.4
 
@@ -21,3 +21,5 @@ jupyter==1.1.1
 notebook==7.4.4
 
 xgboost==3.0.2
+
+feast==0.53.0

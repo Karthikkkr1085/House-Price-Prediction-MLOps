@@ -1,5 +1,23 @@
+# Virtual Environment
 venv/
+venv - Copy/
+
+# Python
 __pycache__/
 *.pyc
+
+# MLflow
 mlruns/
+
+# Trained Models
 models/*.pkl
+
+# Feast Generated Files
+feature_store/feature_repo/data/*.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db

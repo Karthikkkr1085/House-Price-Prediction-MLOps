@@ -4,9 +4,12 @@ import mlflow
 import mlflow.sklearn
 import pandas as pd
 
+from feast import FeatureStore
+
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import r2_score
+
 from mlflow.models import infer_signature
 
 
@@ -16,19 +19,72 @@ class ModelTrainer:
         self.feature_path = "data/features"
         self.model_path = "models"
 
+    # -----------------------------------------------------
+    # Verify Feast Feature Store
+    # -----------------------------------------------------
+    def verify_feast(self):
+
+        try:
+            store = FeatureStore(
+                repo_path="feature_store/feature_repo"
+            )
+
+            features = store.get_online_features(
+                features=[
+                    "house_features:bedrooms",
+                    "house_features:baths",
+                ],
+                entity_rows=[
+                    {"property_id": 237062}
+                ]
+            ).to_dict()
+
+            print("=" * 60)
+            print("Feast Feature Store Connected")
+            print(features)
+            print("=" * 60)
+
+        except Exception as e:
+
+            print("=" * 60)
+            print("Feast Connection Failed")
+            print(e)
+            print("=" * 60)
+
+    # -----------------------------------------------------
+    # Train Models
+    # -----------------------------------------------------
     def train_model(self):
 
-        # Set MLflow experiment
-        mlflow.set_experiment("House Price Prediction")
+        # MLflow Experiment
+        mlflow.set_experiment(
+            "House Price Prediction"
+        )
 
-        # Load datasets
-        X_train = pd.read_csv(f"{self.feature_path}/X_train.csv")
-        X_test = pd.read_csv(f"{self.feature_path}/X_test.csv")
+        # Verify Feast
+        self.verify_feast()
 
-        y_train = pd.read_csv(f"{self.feature_path}/y_train.csv").squeeze()
-        y_test = pd.read_csv(f"{self.feature_path}/y_test.csv").squeeze()
+        # -------------------------------------------------
+        # Load Dataset
+        # -------------------------------------------------
+        X_train = pd.read_csv(
+            f"{self.feature_path}/X_train.csv"
+        )
+
+        X_test = pd.read_csv(
+            f"{self.feature_path}/X_test.csv"
+        )
+
+        y_train = pd.read_csv(
+            f"{self.feature_path}/y_train.csv"
+        ).squeeze()
+
+        y_test = pd.read_csv(
+            f"{self.feature_path}/y_test.csv"
+        ).squeeze()
 
         models = {
+
             "Linear Regression": LinearRegression(),
 
             "Random Forest": RandomForestRegressor(
@@ -36,6 +92,7 @@ class ModelTrainer:
                 random_state=42,
                 n_jobs=-1
             )
+
         }
 
         best_model = None
@@ -50,43 +107,77 @@ class ModelTrainer:
 
             with mlflow.start_run(run_name=name):
 
-                # Train model
-                model.fit(X_train, y_train)
+                # -----------------------------------------
+                # Train
+                # -----------------------------------------
+                model.fit(
+                    X_train,
+                    y_train
+                )
 
-                # Prediction
-                predictions = model.predict(X_test)
+                # -----------------------------------------
+                # Predict
+                # -----------------------------------------
+                predictions = model.predict(
+                    X_test
+                )
 
+                # -----------------------------------------
                 # Evaluation
-                score = r2_score(y_test, predictions)
+                # -----------------------------------------
+                score = r2_score(
+                    y_test,
+                    predictions
+                )
 
-                print(f"{name:<20} R² Score : {score:.4f}")
+                print(
+                    f"{name:<20} R² Score : {score:.4f}"
+                )
 
-                # -----------------------------
-                # Log Parameters
-                # -----------------------------
-                mlflow.log_param("Model", name)
+                # -----------------------------------------
+                # MLflow Parameters
+                # -----------------------------------------
+                mlflow.log_param(
+                    "Model",
+                    name
+                )
 
                 if name == "Random Forest":
-                    mlflow.log_param("n_estimators", 100)
-                    mlflow.log_param("random_state", 42)
-                    mlflow.log_param("n_jobs", -1)
 
-                # -----------------------------
-                # Log Metrics
-                # -----------------------------
-                mlflow.log_metric("R2 Score", score)
+                    mlflow.log_param(
+                        "n_estimators",
+                        100
+                    )
 
-                # -----------------------------
+                    mlflow.log_param(
+                        "random_state",
+                        42
+                    )
+
+                    mlflow.log_param(
+                        "n_jobs",
+                        -1
+                    )
+
+                # -----------------------------------------
+                # Metrics
+                # -----------------------------------------
+                mlflow.log_metric(
+                    "R2 Score",
+                    score
+                )
+
+                # -----------------------------------------
                 # Model Signature
-                # -----------------------------
+                # -----------------------------------------
                 signature = infer_signature(
                     X_train,
                     model.predict(X_train)
                 )
 
-                # -----------------------------
+                # -----------------------------------------
                 # Log Model
-                # -----------------------------
+                # -----------------------------------------
                 mlflow.sklearn.log_model(
                     sk_model=model,
                     name="model",
@@ -94,17 +185,22 @@ class ModelTrainer:
                     input_example=X_train.head(5)
                 )
 
-                # -----------------------------
-                # Select Best Model
-                # -----------------------------
+                # -----------------------------------------
+                # Best Model
+                # -----------------------------------------
                 if score > best_score:
+
                     best_score = score
                     best_model = model
                     best_name = name
 
-        # Save Best Model Locally
-        os.makedirs(self.model_path, exist_ok=True)
-
+        # -------------------------------------------------
+        # Save Best Model
+        # -------------------------------------------------
+        os.makedirs(
+            self.model_path,
+            exist_ok=True
+        )
 
         joblib.dump(
             best_model,
