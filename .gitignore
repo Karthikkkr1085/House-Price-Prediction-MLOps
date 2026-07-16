@@ -21,3 +21,6 @@ feature_store/feature_repo/data/*.db
 # OS
 .DS_Store
 Thumbs.db
+
+feature_store/feature_repo/data/zamee_features.csv
+feature_store/feature_repo/data/zamee_features.parquet
