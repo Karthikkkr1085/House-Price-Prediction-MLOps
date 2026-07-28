@@ -222,8 +222,6 @@ docker run -p 8000:8000 house-price-prediction
 
 ## 📌 Future Enhancements
 
-- Unit Testing with Pytest
-- CI/CD using GitHub Actions
 - Cloud Deployment
 - Interactive Dashboard
 - Automated Model Retraining
